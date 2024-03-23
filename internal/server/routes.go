@@ -1,6 +1,7 @@
 package server
 
 import (
+	"io"
 	"net/http"
 
 	"fmt"
@@ -21,13 +22,14 @@ var conf = &oauth2.Config{
 
 var state = "somesteadystate"
 var pkce_verifier = oauth2.GenerateVerifier()
+var githubAPI = "https://api.github.com"
 
 func (s *Server) RegisterRoutes() http.Handler {
 
 	r := gin.Default()
 	path, err := os.Getwd()
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 	fmt.Println("path: ", path)
 	r.LoadHTMLGlob("internal/templates/*")
@@ -71,9 +73,20 @@ func (s *Server) oauthAmazonReceiver(c *gin.Context) {
 
 	token, err := conf.Exchange(c.Request.Context(), code, oauth2.VerifierOption(pkce_verifier))
 	if err != nil {
-		fmt.Println("error exchanging token: ", err)
+		log.Fatal("error exchanging token: ", err)
 	}
 
 	fmt.Println("%+v", token)
-	c.JSON(200, token)
+
+	oauthClient := conf.Client(c, token)
+
+	oauthresp, err := oauthClient.Get(githubAPI + "/user")
+	if err != nil {
+		log.Fatal("error getting user profile: ", err)
+	}
+
+	bs, err := io.ReadAll(oauthresp.Body)
+	fmt.Println()
+	fmt.Println("user orofile: " + string(bs))
+	c.JSON(200, bs)
 }
