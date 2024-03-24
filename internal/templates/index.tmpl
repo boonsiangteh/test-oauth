@@ -1,3 +1,4 @@
+{{ define "index.tmpl" }}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,8 +8,11 @@
 </head>
 <body>
     <h1>This is the index page</h1>
-    <form action="/oauth/amazon/login" method="post">
+    <form action="/oauth/github/login" method="post">
         <input type="submit" value="login wiht github">
     </form>
+    <h2>your Name is:  {{ .name }}</h2>
+    <h2>your email is:  {{ .email }}</h2>
 </body>
 </html>
+{{ end }}
